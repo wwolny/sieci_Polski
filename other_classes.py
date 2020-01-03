@@ -67,19 +67,19 @@ class Environment:
         for solution in self.solutions:
             solution.update_unused_resources()
 
-    def find_solution(self, solution):  # check first constraint
-        for sol in self.solutions[solution]:
+    def find_solution(self):  # check first constraint
+        for sol in self.solutions:
             sol.start_solution()
 
     def check_first_constraint(self):
         for i in range(len(self.solutions)):
-            if not self.solutions[i].update_constraint_1():
-                print("First constraint not meet for " + str(i) + " solution")
+            if len(self.solutions[i].update_constraint_1()) != 0:
+                print("First constraint not meet for solution: " + str(i))
 
     def check_second_constraint(self):
         for i in range(len(self.solutions)):
-            if not self.solutions[i].update_constraint_2():
-                print("First constraint not meet for " + str(i) + " solution")
+            if len(self.solutions[i].update_constraint_2()) != 0:
+                print("Second constraint not meet for solution: " + str(i))
 
 
 class SolutionNetwork:
@@ -131,16 +131,16 @@ class SolutionNetwork:
 
     def update_constraint_1(self):
         self.constraint_1_not_met = []
-        for i in range(self.demand_nr):
-            if self.demands[i].unused_resources < 0:
+        for i, demand in enumerate(self.demands):
+            if demand.unused_resources < 0:
                 self.constraint_1_not_met.append(i)
         return self.constraint_1_not_met
 
     def update_constraint_2(self):
         self.constraint_2_not_met = []
-        for i in range(self.demand_nr):
+        for i, demand in enumerate(self.demands):
             for j in range(self.network.maxPaths):
-                transp = self.demands[i].transponders[j]
+                transp = demand.transponders[j]
                 if transp is None or len(transp) is 0:
                     continue
                 else:
@@ -154,9 +154,9 @@ class SolutionNetwork:
         L1 = Planck * self.network.bands_fr.get(transponder.band) * transponder.type.osnr * transponder.type.band
         L2 = 0
         for edge in self.network.demands[demand].paths[path].edges:
-            f_e = self.network.ilas[edge]
-            lambda_s = self.network.slices_losses[transponder.start_slice]
-            len_e = self.network.edges_lengths[edge]
+            f_e = self.network.ilas.get(edge)
+            lambda_s = self.network.slices_losses.get(transponder.start_slice+1)
+            len_e = self.network.edges_lengths.get(edge)
             V = self.network.ila_loss
             W = self.network.nloss
             L2 += f_e * (e ** ((lambda_s * len_e) / (1 + f_e)) + V - 2) + (
@@ -168,8 +168,38 @@ class SolutionNetwork:
 
     def start_solution(self):
         for demand in self.demands:
-            #TODO
-            return
+            while demand.unused_resources < 0:
+                t_type = 0
+                t_path = 0
+                while True:
+                    if self.network.transponders[t_type].bitrate > self.network.demands[demand.demand_id].value:
+                        break
+                    if t_type+1 == len(self.network.transponders):
+                        break
+                    t_type += 1
+                transponder = self.network.transponders[t_type]
+                cont = True
+                starting = -1
+                for iter, path in enumerate(self.network.demands[demand.demand_id].paths):
+                    for start_slice in transponder.slices:
+                        for edge in range(len(path.edges)):
+                            for width in range(transponder.slice_width):
+                                if self.band_slices[edge][start_slice-1+width] is True:
+                                    cont = False
+                                    break
+                            if cont is False:
+                                cont = True
+                                break
+                        starting = start_slice-1
+                        break
+                    if starting is not -1:
+                        t_path = iter
+                        break
+                band = self.network.slices_bands.get(starting+1)
+                demand.add_transponder(t_path, transponder, starting, band)
+        self.update_unused_resources()
+        self.update_cost()
+
 
 class SolutionDemand:
     def __init__(self, demand_id=-1):
@@ -184,7 +214,8 @@ class SolutionDemand:
     def add_transponder(self, path, t_type, start_slice, band):
         new_t = SolutionTransponder(t_type, start_slice, path, band)
         self.transponders[path].append(new_t)
-        self.cost += new_t.type.cost
+        self.cost += t_type.costs.get(band)
+        self.unused_resources += t_type.bitrate
 
 
 class SolutionTransponder:
