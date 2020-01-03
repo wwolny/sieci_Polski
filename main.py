@@ -13,27 +13,7 @@ if __name__ == "__main__":
     env.find_solution()
     env.check_first_constraint()
     env.check_second_constraint()
-
-    # cost function
-    f_cost_ = 0
-    # for band in network.band_cost:
-    #     sum_ybE = 0
-    #     for slice in network.slices_bands:
-    #         if network.slices_bands.get(slice) == band:
-    #             sum_ybE += 1
-    #     print(sum_ybE)
-    #     sum_xtnnps = 0
-    #     eTb = 0
-    #     for trans in network.transponders:
-    #         eTb = trans.costs[band]
-    #         xtnnps = 0
-    #         for edge in network.edges_paths:
-    #             for path in network.edges_paths.get(edge):
-    #                 xtnnps+=1
-    #         sum_xtnnps = eTb*xtnnps
-    #     f_cost_ += band*sum_ybE+sum_xtnnps
-    #     print(sum_xtnnps)
-    # print(f_cost_)
+    print("END")
 
 
 

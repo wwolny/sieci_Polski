@@ -50,7 +50,6 @@ class Environment:
     def __init__(self, network, N):
         self.network = network
         self.solutions = []  # list of network solutions
-        # def setup_solution_network_list(self, N):
         for i in range(N):
             self.solutions.append(SolutionNetwork(self.network))
 
@@ -91,17 +90,11 @@ class SolutionNetwork:
         self.cost = 0  # ile kosztuje to rozwiązanie
         self.unused_resources = 0  # ile GB ponad jest niewykorzystywanych
         self.demand_nr = len(network.demands)
-        self.band_slices = [[False] * 384] * len(
-            network.edges_ids)  # lista o długości liczby krawędzi, dla każdej liczba sliców z wartością 1/0
+        self.band_slices = [[False]*384 for i in range(len(network.edges_ids))]  # lista o długości liczby krawędzi, dla każdej liczba sliców z wartością 1/0
         self.constraint_1_not_met = []
         self.constraint_2_not_met = []
 
     def update_cost(self):
-        # cost = 0
-        # for i in range(self.demand_nr):
-        #     cost += self.demands[i].cost
-        # self.cost = cost
-        # return self.cost
         f_cost_ = 0
         for band in self.network.band_cost:
             sum_ybE = 0
@@ -182,19 +175,23 @@ class SolutionNetwork:
                 starting = -1
                 for iter, path in enumerate(self.network.demands[demand.demand_id].paths):
                     for start_slice in transponder.slices:
-                        for edge in range(len(path.edges)):
+                        for edge in path.edges:
                             for width in range(transponder.slice_width):
-                                if self.band_slices[edge][start_slice-1+width] is True:
+                                if self.band_slices[edge-1][start_slice-1+width] is True:
                                     cont = False
                                     break
                             if cont is False:
-                                cont = True
                                 break
-                        starting = start_slice-1
-                        break
+                        if cont is True:
+                            starting = start_slice-1
+                            break
+                        cont = True
                     if starting is not -1:
                         t_path = iter
                         break
+                for edge in self.network.demands[demand.demand_id].paths[t_path].edges:
+                    for width in range(transponder.slice_width):
+                        self.band_slices[edge-1][starting + width] = True
                 band = self.network.slices_bands.get(starting+1)
                 demand.add_transponder(t_path, transponder, starting, band)
         self.update_unused_resources()
