@@ -16,6 +16,9 @@ if __name__ == "__main__":
     env.check_first_constraint()
     env.check_second_constraint()
 
+    for solution in env.solutions:
+        print(solution.cost)
+
     # network.print()
     print("END")
 

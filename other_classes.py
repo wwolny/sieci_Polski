@@ -176,31 +176,42 @@ class SolutionNetwork:
                 transponder = self.network.transponders[transponder_type]
                 # transponder type chosen
 
-                cont = True
-                starting = -1
-                for iter, path in enumerate(self.network.demands[demand.demand_id].paths):
+                can_continue = True
+                first_slice_used = -1
+                for path_id, path in enumerate(self.network.demands[demand.demand_id].paths):
                     for start_slice in transponder.slices:
+
+                        # check if given start slice is not taken for all edges in path
                         for edge in path.edges:
-                            for width in range(transponder.slice_width):
-                                if self.band_slices[edge - 1][start_slice - 1 + width] is True:
-                                    cont = False
+                            for slice_number in range(transponder.slice_width):
+                                if self.band_slices[edge - 1][start_slice - 1 + slice_number] is True:
+                                    can_continue = False
                                     break
-                            if cont is False:
+                            if can_continue is False:
                                 break
-                        if cont is True:
-                            starting = start_slice - 1
+                        # check ended
+
+                        if can_continue is True:
+                            first_slice_used = start_slice - 1
                             break
-                        cont = True
-                    if starting is not -1:
-                        transponder_path_id = iter
+                        else:
+                            can_continue = True
+
+                    #  if we managed to choose any slice for given path then choose this path
+                    if first_slice_used is not -1:
+                        transponder_path_id = path_id
                         break
+                    #  path choosed
 
+                #   set all slices to USED for all edges in path
                 for edge in self.network.demands[demand.demand_id].paths[transponder_path_id].edges:
-                    for width in range(transponder.slice_width):
-                        self.band_slices[edge - 1][starting + width] = True
-                band = self.network.slices_bands.get(starting + 1)
-                demand.add_transponder(transponder_path_id, transponder, starting, band)
+                    for slice_number in range(transponder.slice_width):
+                        self.band_slices[edge - 1][first_slice_used + slice_number] = True
+                #   USED flag set
 
+                band = self.network.slices_bands.get(first_slice_used + 1)
+                demand.add_transponder(transponder_path_id, transponder, first_slice_used, band)
+        # update costs and resources before next iteration
         self.update_unused_resources()
         self.update_cost()
 
