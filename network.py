@@ -37,7 +37,7 @@ class Network:
         print(self.paths)
         print(self.transponders)
         print(self.demands_dict)
-        print(self.bends_costs)
+        print(self.band_cost)
         print(self.slices_bands)
         print(self.ilas)
         print(self.slices_losses)

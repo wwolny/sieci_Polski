@@ -90,7 +90,8 @@ class SolutionNetwork:
         self.cost = 0  # ile kosztuje to rozwiązanie
         self.unused_resources = 0  # ile GB ponad jest niewykorzystywanych
         self.demand_nr = len(network.demands)
-        self.band_slices = [[False]*384 for i in range(len(network.edges_ids))]  # lista o długości liczby krawędzi, dla każdej liczba sliców z wartością 1/0
+        self.band_slices = [[False] * 384 for i in range(
+            len(network.edges_ids))]  # lista o długości liczby krawędzi, dla każdej liczba sliców z wartością 1/0
         self.constraint_1_not_met = []
         self.constraint_2_not_met = []
 
@@ -114,7 +115,6 @@ class SolutionNetwork:
             f_cost_ += band * sum_ybE + sum_eTb
         self.cost = f_cost_
         return f_cost_
-
 
     def update_unused_resources(self):
         self.unused_resources = 0
@@ -148,7 +148,7 @@ class SolutionNetwork:
         L2 = 0
         for edge in self.network.demands[demand].paths[path].edges:
             f_e = self.network.ilas.get(edge)
-            lambda_s = self.network.slices_losses.get(transponder.start_slice+1)
+            lambda_s = self.network.slices_losses.get(transponder.start_slice + 1)
             len_e = self.network.edges_lengths.get(edge)
             V = self.network.ila_loss
             W = self.network.nloss
@@ -167,7 +167,7 @@ class SolutionNetwork:
                 while True:
                     if self.network.transponders[t_type].bitrate > self.network.demands[demand.demand_id].value:
                         break
-                    if t_type+1 == len(self.network.transponders):
+                    if t_type + 1 == len(self.network.transponders):
                         break
                     t_type += 1
                 transponder = self.network.transponders[t_type]
@@ -177,13 +177,13 @@ class SolutionNetwork:
                     for start_slice in transponder.slices:
                         for edge in path.edges:
                             for width in range(transponder.slice_width):
-                                if self.band_slices[edge-1][start_slice-1+width] is True:
+                                if self.band_slices[edge - 1][start_slice - 1 + width] is True:
                                     cont = False
                                     break
                             if cont is False:
                                 break
                         if cont is True:
-                            starting = start_slice-1
+                            starting = start_slice - 1
                             break
                         cont = True
                     if starting is not -1:
@@ -191,8 +191,8 @@ class SolutionNetwork:
                         break
                 for edge in self.network.demands[demand.demand_id].paths[t_path].edges:
                     for width in range(transponder.slice_width):
-                        self.band_slices[edge-1][starting + width] = True
-                band = self.network.slices_bands.get(starting+1)
+                        self.band_slices[edge - 1][starting + width] = True
+                band = self.network.slices_bands.get(starting + 1)
                 demand.add_transponder(t_path, transponder, starting, band)
         self.update_unused_resources()
         self.update_cost()
