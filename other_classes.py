@@ -10,11 +10,11 @@ class Demand:
         self.end_node_id = 0
         self.value = 0
 
-    # def __repr__(self):
-    #     return "\nDemandid:"+str(self.id)+"\npaths:"+str(self.paths)+"\nstart_node:"+str(self.start_node_id)+"\nend node id:"+str(self.end_node_id)+"\nvalue:"+str(self.value)
-    #
-    # def __str__(self):
-    #     return "\nDemandid:"+str(self.id)+"\npaths:"+str(self.paths)+"\nstart_node:"+str(self.start_node_id)+"\nend node id:"+str(self.end_node_id)+"\nvalue:"+str(self.value)
+    def __repr__(self):
+        return "\nDemandid:"+str(self.id)+"\npaths:"+str(self.paths)+"\nstart_node:"+str(self.start_node_id)+"\nend node id:"+str(self.end_node_id)+"\nvalue:"+str(self.value)
+
+    def __str__(self):
+        return "\nDemandid:"+str(self.id)+"\npaths:"+str(self.paths)+"\nstart_node:"+str(self.start_node_id)+"\nend node id:"+str(self.end_node_id)+"\nvalue:"+str(self.value)
 
 
 class Path:
@@ -22,11 +22,11 @@ class Path:
         self.id = 0
         self.edges = []
 
-    # def __repr__(self):
-    #     return "\nPathid:"+str(self.id)+"\nedges:"+str(self.edges)+"\ntransponder_id:"+str(self.transponder_id)
-    #
-    # def __str__(self):
-    #     return "\nPathid:"+str(self.id)+"\nedges:"+str(self.edges)+"\ntransponder_id:"+str(self.transponder_id)
+    def __repr__(self):
+        return "\nPathid:"+str(self.id)+"\nedges:"+str(self.edges)+"\ntransponder_id:"
+
+    def __str__(self):
+        return "\nPathid:"+str(self.id)+"\nedges:"+str(self.edges)+"\ntransponder_id:"
 
 
 class Tranponder:
@@ -39,11 +39,11 @@ class Tranponder:
         self.slice_width = 0
         self.slices = []
 
-    # def __repr__(self):
-    #     return "\nTransponderid:"+str(self.id)+"\nbitrate:"+str(self.bitrate)+"\ncosts"+str(self.costs)+"\nosnr:"+str(self.osnr)+"\nband"+str(self.band)+"\nslice width:"+str(self.slice_width)+"\nslices:"+str(self.slices)
-    #
-    # def __str__(self):
-    #     return "\nTransponderid:"+str(self.id)+"\nbitrate:"+str(self.bitrate)+"\ncosts"+str(self.costs)+"\nosnr:"+str(self.osnr)+"\nband"+str(self.band)+"\nslice width:"+str(self.slice_width)+"\nslices:"+str(self.slices)
+    def __repr__(self):
+        return "\nTransponderid:"+str(self.id)+"\nbitrate:"+str(self.bitrate)+"\ncosts"+str(self.costs)+"\nosnr:"+str(self.osnr)+"\nband"+str(self.band)+"\nslice width:"+str(self.slice_width)+"\nslices:"+str(self.slices)
+
+    def __str__(self):
+        return "\nTransponderid:"+str(self.id)+"\nbitrate:"+str(self.bitrate)+"\ncosts"+str(self.costs)+"\nosnr:"+str(self.osnr)+"\nband"+str(self.band)+"\nslice width:"+str(self.slice_width)+"\nslices:"+str(self.slices)
 
 
 class Environment:
@@ -162,15 +162,20 @@ class SolutionNetwork:
     def start_solution(self):
         for demand in self.demands:
             while demand.unused_resources < 0:
-                t_type = 0
-                t_path = 0
+                transponder_type = 0
+                transponder_path_id = 0
+
+                # choose cheapest transponder for given demand.
+                # If biggest transponder still does not satisfy demand than choose it and continue with function
                 while True:
-                    if self.network.transponders[t_type].bitrate > self.network.demands[demand.demand_id].value:
+                    if self.network.transponders[transponder_type].bitrate > self.network.demands[demand.demand_id].value:
                         break
-                    if t_type + 1 == len(self.network.transponders):
+                    if transponder_type + 1 == len(self.network.transponders):
                         break
-                    t_type += 1
-                transponder = self.network.transponders[t_type]
+                    transponder_type += 1
+                transponder = self.network.transponders[transponder_type]
+                # transponder type chosen
+
                 cont = True
                 starting = -1
                 for iter, path in enumerate(self.network.demands[demand.demand_id].paths):
@@ -187,13 +192,15 @@ class SolutionNetwork:
                             break
                         cont = True
                     if starting is not -1:
-                        t_path = iter
+                        transponder_path_id = iter
                         break
-                for edge in self.network.demands[demand.demand_id].paths[t_path].edges:
+
+                for edge in self.network.demands[demand.demand_id].paths[transponder_path_id].edges:
                     for width in range(transponder.slice_width):
                         self.band_slices[edge - 1][starting + width] = True
                 band = self.network.slices_bands.get(starting + 1)
-                demand.add_transponder(t_path, transponder, starting, band)
+                demand.add_transponder(transponder_path_id, transponder, starting, band)
+
         self.update_unused_resources()
         self.update_cost()
 

@@ -10,9 +10,13 @@ if __name__ == "__main__":
     env.update_unused_resources()
     env.check_first_constraint()
     env.check_second_constraint()
+
+    print("Network setup. Searching for basic solution started")
     env.find_solution()
     env.check_first_constraint()
     env.check_second_constraint()
+
+    # network.print()
     print("END")
 
 
