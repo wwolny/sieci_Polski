@@ -1,90 +1,12 @@
-from scipy.constants import Planck
-from math import e
+from scipy.constants import Planck, e
 
-
-class Demand:
-    def __init__(self):
-        self.id = 0
-        self.paths = []
-        self.start_node_id = 0
-        self.end_node_id = 0
-        self.value = 0
-
-    def __repr__(self):
-        return "\nDemandid:"+str(self.id)+"\npaths:"+str(self.paths)+"\nstart_node:"+str(self.start_node_id)+"\nend node id:"+str(self.end_node_id)+"\nvalue:"+str(self.value)
-
-    def __str__(self):
-        return "\nDemandid:"+str(self.id)+"\npaths:"+str(self.paths)+"\nstart_node:"+str(self.start_node_id)+"\nend node id:"+str(self.end_node_id)+"\nvalue:"+str(self.value)
-
-
-class Path:
-    def __init__(self):
-        self.id = 0
-        self.edges = []
-
-    def __repr__(self):
-        return "\nPathid:"+str(self.id)+"\nedges:"+str(self.edges)+"\ntransponder_id:"
-
-    def __str__(self):
-        return "\nPathid:"+str(self.id)+"\nedges:"+str(self.edges)+"\ntransponder_id:"
-
-
-class Tranponder:
-    def __init__(self):
-        self.id = 0
-        self.bitrate = 0
-        self.costs = {}
-        self.osnr = 0
-        self.band = 0
-        self.slice_width = 0
-        self.slices = []
-
-    def __repr__(self):
-        return "\nTransponderid:"+str(self.id)+"\nbitrate:"+str(self.bitrate)+"\ncosts"+str(self.costs)+"\nosnr:"+str(self.osnr)+"\nband"+str(self.band)+"\nslice width:"+str(self.slice_width)+"\nslices:"+str(self.slices)
-
-    def __str__(self):
-        return "\nTransponderid:"+str(self.id)+"\nbitrate:"+str(self.bitrate)+"\ncosts"+str(self.costs)+"\nosnr:"+str(self.osnr)+"\nband"+str(self.band)+"\nslice width:"+str(self.slice_width)+"\nslices:"+str(self.slices)
-
-
-class Environment:
-    def __init__(self, network, N):
-        self.network = network
-        self.solutions = []  # list of network solutions
-        for i in range(N):
-            self.solutions.append(SolutionNetwork(self.network))
-
-    def setup_demands(self):
-        for i in range(len(self.network.demands)):
-            for j in range(len(self.solutions)):
-                self.solutions[j].demands[i].unused_resources = -1 * self.network.demands[i].value
-
-    def update_cost(self):
-        for solution in self.solutions:
-            solution.update_cost()
-
-    def update_unused_resources(self):
-        for solution in self.solutions:
-            solution.update_unused_resources()
-
-    def find_solution(self):  # check first constraint
-        for sol in self.solutions:
-            sol.start_solution()
-
-    def check_first_constraint(self):
-        for i in range(len(self.solutions)):
-            if len(self.solutions[i].update_constraint_1()) != 0:
-                print("First constraint not meet for solution: " + str(i))
-
-    def check_second_constraint(self):
-        for i in range(len(self.solutions)):
-            if len(self.solutions[i].update_constraint_2()) != 0:
-                print("Second constraint not meet for solution: " + str(i))
+from solution.solution_demand import SolutionDemand
 
 
 class SolutionNetwork:
     def __init__(self, network):
-        self.demands = []
         self.network = network
+        self.demands = []
         for j in range(len(network.demands)):
             self.demands.append(SolutionDemand(j))
         self.cost = 0  # ile kosztuje to rozwiązanie
@@ -103,10 +25,12 @@ class SolutionNetwork:
                 for edge in self.band_slices:
                     if True in edge[:int(len(self.network.slices_bands) / 2) + 1]:
                         sum_ybE += 1
-            else:
+            if band == 2:
                 for edge in self.band_slices:
                     if True in edge[int(len(self.network.slices_bands) / 2) + 1:]:
                         sum_ybE += 1
+
+            # Obliczamy sumę kosztów transponderów
             sum_eTb = 0
             for demand in self.demands:
                 for path in demand.transponders:
@@ -215,27 +139,19 @@ class SolutionNetwork:
         self.update_unused_resources()
         self.update_cost()
 
+    def reset_solution(self):
+        for demand in self.demands:
+            demand.reset()
 
-class SolutionDemand:
-    def __init__(self, demand_id=-1):
-        if demand_id <= -1:
-            self.demand_id = -1
-        else:
-            self.demand_id = demand_id  # id zapotrzebowania w liście zapotrzebowań w sieci
-        self.unused_resources = 0  # ile GB ponad zapotrzebowanie produkuje rozwiązanie zapotrzebowania
-        self.cost = 0  # koszt pokrycia zapotrzebowania
-        self.transponders = [[], [], []]  # id jest numer ścieżki a wartością lista solutionTransponder
+        #  set all slices for all edges to NOT USED (False)
+        for slices_for_given_edge in self.band_slices:
+            for slice_nr in range(len(slices_for_given_edge)):
+                slices_for_given_edge[slice_nr] = False
 
-    def add_transponder(self, path, t_type, start_slice, band):
-        new_t = SolutionTransponder(t_type, start_slice, path, band)
-        self.transponders[path].append(new_t)
-        self.cost += t_type.costs.get(band)
-        self.unused_resources += t_type.bitrate
+        self.setup_demands()
+        self.update_unused_resources()
+        self.update_cost()
 
-
-class SolutionTransponder:
-    def __init__(self, t_type, start_slice, path, band):
-        self.type = t_type
-        self.start_slice = start_slice  # starting slice on edge
-        self.path = path  # which edges
-        self.band = band  # 1 or 2
+    def setup_demands(self):
+        for i in range(len(self.network.demands)):
+            self.demands[i].unused_resources = -1 * self.network.demands[i].value

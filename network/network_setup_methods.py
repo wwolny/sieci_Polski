@@ -1,6 +1,8 @@
-from re import findall, search
-import math as math
-from other_classes import *
+from re import findall
+
+from network.demand import Demand
+from network.path import Path
+from network.transponder import Tranponder
 
 
 def set_up_network_data(self, data_file_path):

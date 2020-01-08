@@ -20,17 +20,17 @@ class Network:
         self.maxPaths = 0
         self.p0 = 0.0
 
-    from network_setup_methods import set_up_network_data
-    from network_setup_methods import set_up_demands
-    from network_setup_methods import set_up_paths_in_demands
-    from network_setup_methods import set_up_transponders
-    from network_setup_methods import setup_band_cost
-    from network_setup_methods import setup_slices_bands
-    from network_setup_methods import setup_ilas
-    from network_setup_methods import set_up_slices_losses
-    from network_setup_methods import set_up_edges
-    from network_setup_methods import set_up_other_parameters
-    from network_setup_methods import set_up_bands_fr
+    from network.network_setup_methods import set_up_network_data
+    from network.network_setup_methods import set_up_demands
+    from network.network_setup_methods import set_up_paths_in_demands
+    from network.network_setup_methods import set_up_transponders
+    from network.network_setup_methods import setup_band_cost
+    from network.network_setup_methods import setup_slices_bands
+    from network.network_setup_methods import setup_ilas
+    from network.network_setup_methods import set_up_slices_losses
+    from network.network_setup_methods import set_up_edges
+    from network.network_setup_methods import set_up_other_parameters
+    from network.network_setup_methods import set_up_bands_fr
 
     def print(self):
         print(self.demands)
