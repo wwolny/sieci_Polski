@@ -8,7 +8,7 @@ class SolutionNetwork:
         self.network = network
         self.demands = []
         for j in range(len(network.demands)):
-            self.demands.append(SolutionDemand(j))
+            self.demands.append(SolutionDemand(self.network, j))
         self.cost = 0  # ile kosztuje to rozwiązanie
         self.unused_resources = 0  # ile GB ponad jest niewykorzystywanych
         self.demand_nr = len(network.demands)
@@ -92,7 +92,7 @@ class SolutionNetwork:
                 # choose cheapest transponder for given demand.
                 # If biggest transponder still does not satisfy demand than choose it and continue with function
                 while True:
-                    if self.network.transponders[transponder_type].bitrate > self.network.demands[demand.demand_id].value:
+                    if self.network.transponders[transponder_type].bitrate > -1*demand.unused_resources:
                         break
                     if transponder_type + 1 == len(self.network.transponders):
                         break
@@ -147,9 +147,7 @@ class SolutionNetwork:
             demand.reset()
 
         #  set all slices for all edges to NOT USED (False)
-        for slices_for_given_edge in self.band_slices:
-            for slice_nr in range(len(slices_for_given_edge)):
-                slices_for_given_edge[slice_nr] = False
+        self.band_slices = [[False] * 384 for i in range(len(self.network.edges_ids))]
 
         self.setup_demands()
         self.update_unused_resources()
@@ -158,3 +156,7 @@ class SolutionNetwork:
     def setup_demands(self):
         for i in range(len(self.network.demands)):
             self.demands[i].unused_resources = -1 * self.network.demands[i].value
+
+    def get_current_cheapest_transponder_set(self):
+        for demand in self.demands:
+            print("Demand: {0}: list of transponders: {1}".format(demand.demand_id, demand.current_cheapest_transponder_set()))

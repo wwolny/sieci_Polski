@@ -34,3 +34,12 @@ class Environment:
         for i in range(len(self.solutions)):
             if len(self.solutions[i].update_constraint_2()) != 0:
                 print("Second constraint not meet for solution: " + str(i))
+
+    def reset_solutions(self):
+        for solution in self.solutions:
+            solution.reset_solution()
+
+    def print_cheapest_tranponders(self):
+        for solution in self.solutions:
+            solution.get_current_cheapest_transponder_set()
+
