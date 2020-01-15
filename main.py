@@ -4,7 +4,7 @@ from environment import *
 
 if __name__ == "__main__":
     network = Network()
-    network.set_up_network_data("res.dat")
+    network.set_up_network_data("res2.dat")
     env = Environment(network, 10)
     env.setup_demands()
     env.update_cost()

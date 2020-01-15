@@ -125,16 +125,19 @@ class SolutionNetwork:
                     if first_slice_used is not -1:
                         transponder_path_id = path_id
                         break
-                    #  path choosed
+                    #  path taken
 
                 #   set all slices to USED for all edges in path
                 for edge in self.network.demands[demand.demand_id].paths[transponder_path_id].edges:
                     for slice_number in range(transponder.slice_width):
                         self.band_slices[edge - 1][first_slice_used + slice_number] = True
                 #   USED flag set
-
-                band = self.network.slices_bands.get(first_slice_used + 1)
-                demand.add_transponder(transponder_path_id, transponder, first_slice_used, band)
+                if first_slice_used is not -1:
+                    band = self.network.slices_bands.get(first_slice_used + 1)
+                    demand.add_transponder(transponder_path_id, transponder, first_slice_used, band)
+                else:
+                    print("Couldn't meet demand for {0}".format(demand.demand_id))
+                    break
         # update costs and resources before next iteration
         self.update_unused_resources()
         self.update_cost()
