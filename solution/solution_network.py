@@ -73,6 +73,7 @@ class SolutionNetwork:
     def update(self):
         self.update_unused_resources()
         self.update_cost()
+        self.get_current_cheapest_transponder_set()
 
     # zwraca czy 2 ograniczone jest spełnione dla danego zapotrzebowania odpowiedniej ścieżki i danego transpondera
     def check_2_constraint(self, demand, path, transponder):
@@ -93,7 +94,7 @@ class SolutionNetwork:
 
     def start_solution(self):
         for demand in self.demands:
-            while demand.unused_resources < 0:
+            while len(demand.current_cheapest_transponder_set()) > 0:
                 transponder_type = 0
                 transponder_path_id = 0
 
@@ -147,8 +148,7 @@ class SolutionNetwork:
                     print("Couldn't meet demand for {0}".format(demand.demand_id))
                     break
         # update costs and resources before next iteration
-        self.update_unused_resources()
-        self.update_cost()
+        self.update()
 
     # Nie sprawdza, czy można postawić
     # ustawia True na danych krawędziach na odpowienidnich slicach

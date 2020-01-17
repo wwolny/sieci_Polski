@@ -30,9 +30,9 @@ class Colony:
                 # if worker.current_solution_network.cost < self.best_solution_network.cost:
                 #     self.best_solution_network = copy.copy(worker.current_solution_network)
 
-            # for onlooker in self.onlookers:
-            #     onlooker.search_for_new_solution()
-            #
+            for onlooker in self.onlookers:
+                onlooker.search_for_new_solution()
+
             #     if onlooker.current_solution_network.cost < self.best_solution_network.cost:
             #         self.best_solution_network = copy.copy(onlooker.current_solution_network)
             #
