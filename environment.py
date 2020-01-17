@@ -43,3 +43,10 @@ class Environment:
         for solution in self.solutions:
             solution.get_current_cheapest_transponder_set()
 
+    def print_used_transponders(self):
+        for solution in self.solutions:
+            solution.get_transponders()
+
+    def test_make_set_3(self):
+        for solution in self.solutions:
+            print(solution.make_set_for_three(list(range(60))))

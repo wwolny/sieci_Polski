@@ -1,5 +1,5 @@
 from scipy.constants import Planck, e
-
+import random
 from solution.solution_demand import SolutionDemand
 
 
@@ -152,11 +152,52 @@ class SolutionNetwork:
         self.setup_demands()
         self.update_unused_resources()
         self.update_cost()
+        self.update_constraint_1()
+        self.update_constraint_2()
 
     def setup_demands(self):
         for i in range(len(self.network.demands)):
             self.demands[i].unused_resources = -1 * self.network.demands[i].value
 
-    def get_current_cheapest_transponder_set(self):
+    def print_current_cheapest_transponder_set(self):
         for demand in self.demands:
-            print("Demand: {0}: list of transponders: {1}".format(demand.demand_id, demand.current_cheapest_transponder_set()))
+            print("Demand: {0}: list of cheapest needed transponders: {1}".format(demand.demand_id, demand.current_cheapest_transponder_set()))
+
+    # return dictionary key demand id, value list of transponders type
+    def get_current_cheapest_transponder_set(self):
+        chepest = {}
+        for demand in self.demands:
+            dict[demand.demand_id] = demand.current_cheapest_transponder_set()
+        return chepest
+
+    def print_transponders(self):
+        for demand in self.demands:
+            transponders = [[],[],[]]
+            for i, path in enumerate(demand.transponders):
+                for transponder in path:
+                    transponders[i].append(transponder.type.id-1)
+            print("Demand: {0}: list of transponders: {1}".format(demand.demand_id, transponders))
+
+    # return set of demands paths where should be put the most powerful transponders to cover
+    # whole 3 slices in whole network on the same start slice
+    def make_set_for_three(self, list_of_demands_ids):
+        # return list of path that should be used to fully cover
+        chosen_paths = []
+        available_paths = []
+        available_edges = list(range(1, len(self.network.edges_ids)+1))
+        for id in list_of_demands_ids:
+            for path in self.network.demands[id].paths:
+                available_paths.append(path.id)
+        while 0 < len(available_paths) and len(available_edges) != 0:
+            path = random.choice(available_paths)
+            to_remove = []
+            for edge in self.network.paths[path].edges:
+                to_remove.append(edge)
+            if len(list(set(available_edges).intersection(to_remove))) != len(to_remove):
+                available_paths.remove(path)
+                continue
+            available_edges = [x for x in available_edges if x not in to_remove]
+            chosen_paths.append(path)
+            available_paths.remove(path)
+        free_spots = len(available_edges)
+        return chosen_paths, free_spots
