@@ -74,7 +74,6 @@ class Scout:
                 demand.add_transponder(transponder_path_id, transponder, first_slice_used, band)
 
         # update costs and resources before next iteration
-        self.current_solution_network.update_unused_resources()
-        self.current_solution_network.update_cost()
+        self.current_solution_network.update()
 
         print("Scout found new solution with cost:", self.current_solution_network.cost)

@@ -21,6 +21,10 @@ class Environment:
         for solution in self.solutions:
             solution.update_unused_resources()
 
+    def update(self):
+        self.update_cost()
+        self.update_unused_resources()
+
     def find_solution(self):  # check first constraint
         for sol in self.solutions:
             sol.start_solution()

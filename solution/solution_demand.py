@@ -26,6 +26,7 @@ class SolutionDemand:
 
     def current_cheapest_transponder_set(self):
         resources = self.unused_resources
+        self.cheapest_transponder_set = []
         while resources < 0:
             transponder_type = 0
             while True:

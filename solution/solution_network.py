@@ -66,6 +66,10 @@ class SolutionNetwork:
                             self.constraint_2_not_met.append(i)
         return self.constraint_2_not_met
 
+    def update(self):
+        self.update_unused_resources()
+        self.update_cost()
+
     # zwraca czy 2 ograniczone jest spełnione dla danego zapotrzebowania odpowiedniej ścieżki i danego transpondera
     def check_2_constraint(self, demand, path, transponder):
         L1 = Planck * self.network.bands_fr.get(transponder.band) * transponder.type.osnr * transponder.type.band
@@ -145,11 +149,11 @@ class SolutionNetwork:
     # Nie sprawdza, czy można postawić
     # ustawia True na danych krawędziach na odpowienidnich slicach
     def add_trans_on_slice(self, slice, width, edges, start_edge = 0):
-        if start_edge != 0 or start_edge != 1:
+        if start_edge != 0 and start_edge != 1:
             return -1
-        for i in edges:
+        for edge in edges:
             for i in range(width):
-                self.band_slices[edges-start_edge][slice+i] = True
+                self.band_slices[edge-start_edge][slice+i] = True
         return 1
 
 
@@ -214,3 +218,4 @@ class SolutionNetwork:
             chosen_paths[path] = [dem_id, nr_path]
             available_paths.pop(path)
         return chosen_paths
+

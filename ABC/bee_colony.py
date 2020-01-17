@@ -27,20 +27,20 @@ class Colony:
             for worker in self.workers:
                 worker.search_for_new_solution()
 
-                if worker.current_solution_network.cost < self.best_solution_network.cost:
-                    self.best_solution_network = copy.copy(worker.current_solution_network)
+                # if worker.current_solution_network.cost < self.best_solution_network.cost:
+                #     self.best_solution_network = copy.copy(worker.current_solution_network)
 
-            for onlooker in self.onlookers:
-                onlooker.search_for_new_solution()
-
-                if onlooker.current_solution_network.cost < self.best_solution_network.cost:
-                    self.best_solution_network = copy.copy(onlooker.current_solution_network)
-
-            for scout in self.scouts:
-                scout.search_for_new_solution()
-
-                if scout.current_solution_network.cost < self.best_solution_network.cost:
-                    self.best_solution_network = copy.copy(scout.current_solution_network)
+            # for onlooker in self.onlookers:
+            #     onlooker.search_for_new_solution()
+            #
+            #     if onlooker.current_solution_network.cost < self.best_solution_network.cost:
+            #         self.best_solution_network = copy.copy(onlooker.current_solution_network)
+            #
+            # for scout in self.scouts:
+            #     scout.search_for_new_solution()
+            #
+            #     if scout.current_solution_network.cost < self.best_solution_network.cost:
+            #         self.best_solution_network = copy.copy(scout.current_solution_network)
 
             current_iteration += 1
 
