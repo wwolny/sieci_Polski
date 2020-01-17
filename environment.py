@@ -5,6 +5,7 @@ class Environment:
     def __init__(self, network, N):
         self.network = network
         self.solutions = []  # list of network solutions
+        self.size = N
         for i in range(N):
             self.solutions.append(SolutionNetwork(self.network))
 

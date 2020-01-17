@@ -1,6 +1,6 @@
 class Onlooker:
-    def __init__(self, start_solution_network, network):
-        self.current_solution_network = start_solution_network
+    def __init__(self, start_solution, network):
+        self.current_solution = start_solution
         self.network = network
 
     # TO BE IMPLEMENTED

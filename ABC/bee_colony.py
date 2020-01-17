@@ -36,8 +36,8 @@ class Colony:
             #     if onlooker.current_solution_network.cost < self.best_solution_network.cost:
             #         self.best_solution_network = copy.copy(onlooker.current_solution_network)
             #
-            # for scout in self.scouts:
-            #     scout.search_for_new_solution()
+            for scout in self.scouts:
+                scout.search_for_new_solution()
             #
             #     if scout.current_solution_network.cost < self.best_solution_network.cost:
             #         self.best_solution_network = copy.copy(scout.current_solution_network)
@@ -55,6 +55,12 @@ def check_if_bee_count_correct(workers_count, onlookers_count, scouts_count, ini
 
 
 def set_networks_for_bees(self, workers_count, onlookers_count, scouts_count, solution_networks, network):
+    for i in range(self.environment.size):
+        self.scouts.append(Scout(solution_networks[i], network))
+    for scout in self.scouts:
+        scout.search_for_new_solution()
+    scout.scouts = []
+
     current_network_number = 0
 
     for _ in range(workers_count):

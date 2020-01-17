@@ -19,6 +19,7 @@ class Network:
         self.nloss = 0
         self.maxPaths = 0
         self.p0 = 0.0
+        self.sec_band_start = 0
 
     from network.network_setup_methods import set_up_network_data
     from network.network_setup_methods import set_up_demands

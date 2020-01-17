@@ -16,6 +16,8 @@ class SolutionNetwork:
             len(network.edges_ids))]  # lista o długości liczby krawędzi, dla każdej liczba sliców z wartością 1/0
         self.constraint_1_not_met = []
         self.constraint_2_not_met = []
+        self.transponders_2_band = []  # demands in which here are transponders in second band
+        self.setup_demands()
 
     def update_cost(self):
         f_cost_ = 0
@@ -44,12 +46,14 @@ class SolutionNetwork:
         self.unused_resources = 0
         for i in range(self.demand_nr):
             self.unused_resources += self.demands[i].unused_resources
+            if len(self.demands[i].transponders_in_2_band) > 0:
+                self.transponders_2_band.append(i)
         return self.unused_resources
 
     def update_constraint_1(self):
         self.constraint_1_not_met = []
         for i, demand in enumerate(self.demands):
-            if demand.unused_resources < 0:
+            if len(demand.current_cheapest_transponder_set()) > 0:
                 self.constraint_1_not_met.append(i)
         return self.constraint_1_not_met
 
@@ -148,7 +152,7 @@ class SolutionNetwork:
 
     # Nie sprawdza, czy można postawić
     # ustawia True na danych krawędziach na odpowienidnich slicach
-    def add_trans_on_slice(self, slice, width, edges, start_edge = 0):
+    def add_trans_on_slice(self, slice, width, edges, start_edge=0):
         if start_edge != 0 and start_edge != 1:
             return -1
         for edge in edges:
@@ -156,6 +160,13 @@ class SolutionNetwork:
                 self.band_slices[edge-start_edge][slice+i] = True
         return 1
 
+    def free_trans_on_slice(self, slice, width, edges, start_edge=0):
+        if start_edge != 0 and start_edge != 1:
+            return -1
+        for edge in edges:
+            for i in range(width):
+                self.band_slices[edge-start_edge][slice+i] = False
+        return 1
 
     def reset_solution(self):
         for demand in self.demands:
@@ -173,6 +184,7 @@ class SolutionNetwork:
     def setup_demands(self):
         for i in range(len(self.network.demands)):
             self.demands[i].unused_resources = -1 * self.network.demands[i].value
+            self.demands[i].demand_val = -1 * self.network.demands[i].value
 
     def print_current_cheapest_transponder_set(self):
         for demand in self.demands:
@@ -182,7 +194,9 @@ class SolutionNetwork:
     def get_current_cheapest_transponder_set(self):
         cheapest = {}
         for demand in self.demands:
-            cheapest[demand.demand_id] = demand.current_cheapest_transponder_set()
+            demand.current_cheapest_transponder_set()
+            if len(demand.cheapest_transponder_set) > 0:
+                cheapest[demand.demand_id] = demand.current_cheapest_transponder_set()
         return cheapest
 
     def print_transponders(self):
@@ -193,6 +207,7 @@ class SolutionNetwork:
                     transponders[i].append(transponder.type.id-1)
             print("Demand: {0}: list of transponders: {1}".format(demand.demand_id, transponders))
 
+    # input dict of key: demand id and value: number of transponders needed
     # return set of demands paths where should be put the most powerful transponders to cover
     # whole 3 slices in whole network on the same start slice
     def make_set_for_three(self, list_of_demands_ids):
@@ -201,13 +216,16 @@ class SolutionNetwork:
         chosen_paths = {}
         available_paths = {}
         available_edges = list(range(1, len(self.network.edges_ids)+1))
-        for id in list_of_demands_ids:
+        for id in list(list_of_demands_ids.keys()):
             for i, path in enumerate(self.network.demands[id].paths):
                 available_paths[path.id] = [id, i]
         while 0 < len(available_paths) and len(available_edges) != 0:
             path = random.choice(list(available_paths.keys()))
             dem_id = available_paths.get(path)[0]
             nr_path = available_paths.get(path)[1]
+            if list_of_demands_ids.get(dem_id) <= 0:
+                available_paths.pop(path)
+                continue
             to_remove = []
             for edge in self.network.demands[dem_id].paths[nr_path].edges:
                 to_remove.append(edge)
@@ -217,5 +235,6 @@ class SolutionNetwork:
             available_edges = [x for x in available_edges if x not in to_remove]
             chosen_paths[path] = [dem_id, nr_path]
             available_paths.pop(path)
+            list_of_demands_ids[dem_id] -= 1
         return chosen_paths
 

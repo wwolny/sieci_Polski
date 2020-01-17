@@ -12,15 +12,19 @@ class SolutionDemand:
         self.transponders = [[], [], []]  # id jest numer ścieżki a wartością lista solutionTransponder
         self.cheapest_transponder_set = []
         self.network = network
+        self.demand_val = 0
+        self.transponders_in_2_band = []
 
     def add_transponder(self, path, transponder_type, start_slice, band):
         new_transponder = SolutionTransponder(transponder_type, start_slice, path, band)
         self.transponders[path].append(new_transponder)
         self.cost += transponder_type.costs.get(band)
         self.unused_resources += transponder_type.bitrate
+        if band == 2:
+            self.transponders_in_2_band.append(new_transponder)
 
     def reset(self):
-        self.unused_resources = 0  # przywracamy stan pierwotny
+        self.unused_resources = self.demand_val  # przywracamy stan pierwotny
         self.cost = 0
         self.transponders = [[], [], []]
 
@@ -38,3 +42,10 @@ class SolutionDemand:
             resources += self.network.transponders[transponder_type].bitrate
             self.cheapest_transponder_set.append(transponder_type)
         return self.cheapest_transponder_set
+
+    def del_from_2_band(self, start_slice, path):
+        for id, trans in enumerate(self.transponders_in_2_band):
+            if trans.start_slice == start_slice and trans.path == path:
+                self.transponders_in_2_band.pop(id)
+                return 1
+        return 0
