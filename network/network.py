@@ -1,5 +1,5 @@
 class Network:
-    def __init__(self):
+    def __init__(self, demand_multiplier):
         self.demands = []
         self.paths = []
         self.transponders = []
@@ -20,6 +20,7 @@ class Network:
         self.maxPaths = 0
         self.p0 = 0.0
         self.sec_band_start = 0
+        self.DEMAND_VALUE_MULTIPLIER = demand_multiplier
 
     from network.network_setup_methods import set_up_network_data
     from network.network_setup_methods import set_up_demands

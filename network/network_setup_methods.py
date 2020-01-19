@@ -4,8 +4,6 @@ from network.demand import Demand
 from network.path import Path
 from network.transponder import Tranponder
 
-DEMAND_VALUE_MULTIPLIER = 1.5
-
 
 def set_up_network_data(self, data_file_path):
     with open(data_file_path) as file:
@@ -41,7 +39,7 @@ def set_up_demands(self, text):
                 demand.end_node_id = col_iter + 1
                 self.demands.append(demand)
                 self.demands_dict[(demand.start_node_id, demand.end_node_id)] = len(self.demands) - 1
-                demand.value = float(value)*DEMAND_VALUE_MULTIPLIER
+                demand.value = float(value)*self.DEMAND_VALUE_MULTIPLIER
 
 
 def set_up_paths_in_demands(self, text):

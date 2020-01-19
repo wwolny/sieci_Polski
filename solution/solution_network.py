@@ -42,8 +42,18 @@ class SolutionNetwork:
         self.cost = f_cost_
         return f_cost_
 
+    def min_cost(self):
+        f_cost_ = 0
+        for demand in self.demands:
+            trans = demand.current_cheapest_transponder_set()
+            for t in trans:
+                f_cost_ += self.network.transponders[t].costs.get(1)
+                f_cost_ += max(t, 1)*len(self.network.demands[demand.demand_id].paths[1].edges)
+        return f_cost_
+
     def update_unused_resources(self):
         self.unused_resources = 0
+        self.transponders_2_band = []
         for i in range(self.demand_nr):
             self.unused_resources += self.demands[i].unused_resources
             if len(self.demands[i].transponders_in_2_band) > 0:
@@ -147,12 +157,12 @@ class SolutionNetwork:
                 else:
                     print("Couldn't meet demand for {0}".format(demand.demand_id))
                     break
-        # update costs and resources before next iteration
-        self.update()
+            # update costs and resources before next iteration
+            self.update()
 
     # Nie sprawdza, czy można postawić
     # ustawia True na danych krawędziach na odpowienidnich slicach
-    def add_trans_on_slice(self, slice, width, edges, start_edge=0):
+    def add_trans_on_slice(self, slice, width, edges, start_edge):
         if start_edge != 0 and start_edge != 1:
             return -1
         for edge in edges:
@@ -168,6 +178,22 @@ class SolutionNetwork:
                 self.band_slices[edge-start_edge][slice+i] = False
         return 1
 
+    # if you cna fit transponder on slice
+    # return True
+    # else return False
+    def check_trans_on_slice(self, slice, width, edges, start_edge=0):
+        if start_edge != 0 and start_edge != 1:
+            return -1
+        possible = True
+        for edge in edges:
+            for i in range(width):
+                if self.band_slices[edge - start_edge][slice + i] == True:
+                    possible = False
+                    break
+            if not possible:
+                break
+        return possible
+
     def reset_solution(self):
         for demand in self.demands:
             demand.reset()
@@ -176,8 +202,7 @@ class SolutionNetwork:
         self.band_slices = [[False] * 384 for i in range(len(self.network.edges_ids))]
 
         self.setup_demands()
-        self.update_unused_resources()
-        self.update_cost()
+        self.update()
         self.update_constraint_1()
         self.update_constraint_2()
 

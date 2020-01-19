@@ -1,11 +1,13 @@
 import numpy as np
 import random
 
+
+# TODO: change some transponders from 3rd/2nd path to 1st (shortest)
 class Worker:
     def __init__(self, start_solution, network):
         self.current_solution = start_solution
         self.network = network
-        self.MAX_ITERATION = 10
+        self.MAX_ITERATION = 50
 
     def search_for_new_solution(self):
         cheapest_trans_dict = self.current_solution.get_current_cheapest_transponder_set()
@@ -16,10 +18,12 @@ class Worker:
         self.current_solution.update_constraint_1()
         self.current_solution.update()
         print("Worker found new solution with cost:", self.current_solution.cost)
-        print("First constraint not meet for:{0}".format(self.current_solution.constraint_1_not_met))
+        # print("First constraint not meet for:{0}".format(self.current_solution.constraint_1_not_met))
 
     def _set_lower(self):
         demands_lst = self.current_solution.transponders_2_band
+        if len(demands_lst) == 0:
+            return 0
         dem_id = random.choice(demands_lst)
         transponder = None
         for path in range(3):
@@ -74,6 +78,8 @@ class Worker:
 
 
     def _add_new_trans(self, dict_cheapest):
+        if len(dict_cheapest) == 0:
+            return 0
         chosen_dem_id = random.choice(list(dict_cheapest.keys()))
         trans_t = random.choice(dict_cheapest.get(chosen_dem_id))
         chosen_path = -1

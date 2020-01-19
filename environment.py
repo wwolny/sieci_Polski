@@ -55,3 +55,8 @@ class Environment:
     def test_make_set_3(self):
         for solution in self.solutions:
             print(solution.make_set_for_three(list(range(60))))
+
+    def get_minimal_cost(self):
+        if len(self.solutions) > 0:
+            return self.solutions[0].min_cost()
+        return -1

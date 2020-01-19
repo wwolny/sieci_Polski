@@ -27,6 +27,7 @@ class SolutionDemand:
         self.unused_resources = self.demand_val  # przywracamy stan pierwotny
         self.cost = 0
         self.transponders = [[], [], []]
+        self.transponders_in_2_band = []
 
     def current_cheapest_transponder_set(self):
         resources = self.unused_resources
@@ -49,3 +50,11 @@ class SolutionDemand:
                 self.transponders_in_2_band.pop(id)
                 return 1
         return 0
+
+    def del_transponder(self, path, id):
+        transponder = self.transponders[path][id]
+        self.cost -= transponder.type.costs.get(transponder.band)
+        self.unused_resources -= transponder.type.bitrate
+        if transponder.band == 2:
+            self.del_from_2_band(transponder.start_slice, transponder.path)
+        self.transponders[path].pop(id)
