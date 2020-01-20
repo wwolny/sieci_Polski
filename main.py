@@ -3,18 +3,19 @@ from network.network import Network
 from environment import *
 
 if __name__ == "__main__":
-    network = Network(1.75)
-    network.set_up_network_data("res2.dat")
+    network = Network(100)
+    network.set_up_network_data("res.dat")
     env = Environment(network, 10)
     env.setup_demands()
-    env.update()
-    print("Minimal cost if all transponders would be in 1st band is: {0}".format(env.get_minimal_cost()))
+    # env.update()
+    print("Minimal cost if all transponders would be on 1st band taking first path is: {0}".format(env.get_minimal_cost()))
     # env.check_first_constraint()
     # env.check_second_constraint()
 
     print("Network setup. Searching for basic solution started")
     env.find_solution()
-    # env.check_first_constraint()
+    env.check_first_constraint()
+    env.update()
     # env.check_second_constraint()
     print(env.solutions[0].cost)
         # print(solution.get_current_cheapest_transponder_set())

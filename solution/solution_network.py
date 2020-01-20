@@ -37,7 +37,8 @@ class SolutionNetwork:
             for demand in self.demands:
                 for path in demand.transponders:
                     for trans in path:
-                        sum_eTb += trans.type.costs[band]
+                        if trans.band == band:
+                            sum_eTb += trans.type.costs.get(band)
             f_cost_ += band * sum_ybE + sum_eTb
         self.cost = f_cost_
         return f_cost_
@@ -48,7 +49,7 @@ class SolutionNetwork:
             trans = demand.current_cheapest_transponder_set()
             for t in trans:
                 f_cost_ += self.network.transponders[t].costs.get(1)
-                f_cost_ += max(t, 1)*len(self.network.demands[demand.demand_id].paths[1].edges)
+        f_cost_ += len(self.network.edges_ids)
         return f_cost_
 
     def update_unused_resources(self):

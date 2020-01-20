@@ -4,28 +4,31 @@ class Onlooker:
     def __init__(self, start_solution, network):
         self.current_solution = start_solution
         self.network = network
-        self.DEL_LEVEL = 120
+        self.DEL_LEVEL = 150
         self.MAX_ITERATION = 10
 
     def search_for_new_solution(self):
-        self.del_all_trans_over()
+        if len(self.current_solution.constraint_1_not_met) == 0:
+            self.del_all_trans_over()
         self.current_solution.update()
         self.current_solution.update_constraint_1()
         self.current_solution.get_current_cheapest_transponder_set()
-        rand_demand = random.sample(range(len(self.current_solution.demands)), len(self.current_solution.demands))
-        while len(self.current_solution.constraint_1_not_met) > 0:
-            demand = random.choice(rand_demand)
-            iteration = 0
-            while len(self.current_solution.demands[demand].current_cheapest_transponder_set()) > 0 and iteration < self.MAX_ITERATION:
-                transponder_type = self.current_solution.demands[demand].cheapest_transponder_set[0]
-                transponder_path_id = 0
-                transponder = self.network.transponders[transponder_type]
+        for path_id in range(self.network.maxPaths):
+            if len(self.current_solution.constraint_1_not_met) == 0:
+                break
+            rand_demand = random.sample(range(len(self.current_solution.demands)), len(self.current_solution.demands))
+            while len(rand_demand) > 0:
+                demand = random.choice(rand_demand)
+                rand_demand.remove(demand)
+                iteration = 0
+                while len(self.current_solution.demands[demand].current_cheapest_transponder_set()) > 0 and iteration < self.MAX_ITERATION:
+                    transponder_type = self.current_solution.demands[demand].cheapest_transponder_set[0]
+                    transponder = self.network.transponders[transponder_type]
 
-                can_continue = True
-                first_slice_used = -1
-                for path_id, path in enumerate(self.network.demands[demand].paths):
+                    can_continue = True
+                    first_slice_used = -1
+                    path = self.network.demands[demand].paths[path_id]
                     for start_slice in transponder.slices:
-
                         # check if given start slice is not taken for all edges in path
                         for edge in path.edges:
                             for slice_number in range(transponder.slice_width):
@@ -41,25 +44,18 @@ class Onlooker:
                             break
                         else:
                             can_continue = True
-
-                    #  if we managed to choose any slice for given path then choose this path
+                    #   USED flag set
                     if first_slice_used is not -1:
-                        transponder_path_id = path_id
+                        band = self.network.slices_bands.get(first_slice_used + 1)
+                        self.current_solution.demands[demand].add_transponder(path_id, transponder, first_slice_used, band)
+                        self.current_solution.add_trans_on_slice(first_slice_used, transponder.slice_width, self.network.demands[demand].paths[path_id].edges, 1)
+                    else:
+                        print("Couldn't meet demand for {0}".format(demand))
                         break
-                    #  path taken
-
-                #   USED flag set
-                if first_slice_used is not -1:
-                    band = self.network.slices_bands.get(first_slice_used + 1)
-                    self.current_solution.demands[demand].add_transponder(transponder_path_id, transponder, first_slice_used, band)
-                    self.current_solution.add_trans_on_slice(first_slice_used, transponder.slice_width, self.network.demands[demand].paths[transponder_path_id].edges, 1)
-                else:
-                    print("Couldn't meet demand for {0}".format(demand.demand_id))
-                    break
-                iteration += 1
-            # update costs and resources before next iteration
-            self.current_solution.update()
-            self.current_solution.update_constraint_1()
+                    iteration += 1
+                # update costs and resources before next iteration
+                self.current_solution.update()
+                self.current_solution.update_constraint_1()
         print("Onlooker found new solution with cost:", self.current_solution.cost)
         # print("First constraint not meet for:{0}".format(self.current_solution.constraint_1_not_met))
 
