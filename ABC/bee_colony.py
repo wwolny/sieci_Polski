@@ -32,7 +32,7 @@ class Colony:
 
         # Musimy na starcie ustawić jakieś rozwiązanie jako najlepsze
         # Jego koszt to nieskonczosc bo chcemy je zastapic dowolnym prawidlowym rozwiazaniem
-        self.best_solution_network = copy.copy(environment.solutions[0])
+        self.best_solution_network = environment.solutions[0].copy()
         self.best_solution_network.cost = math.inf
 
     def search_for_best_solution(self, iteration_number):
@@ -49,7 +49,7 @@ class Colony:
 
                 if worker.current_solution.cost < self.best_solution_network.cost:
                     if worker.current_solution.are_constraints_met():
-                        self.best_solution_network = copy.copy(worker.current_solution)
+                        self.best_solution_network = worker.current_solution.copy()
 
             for onlooker in self.onlookers:
                 onlooker.search_for_new_solution()
@@ -57,7 +57,7 @@ class Colony:
 
                 if onlooker.current_solution.cost < self.best_solution_network.cost:
                     if onlooker.current_solution.are_constraints_met():
-                        self.best_solution_network = copy.copy(onlooker.current_solution)
+                        self.best_solution_network = onlooker.current_solution.copy()
 
             for scout in self.scouts:
                 scout.search_for_new_solution()
@@ -67,7 +67,7 @@ class Colony:
 
                 if scout.current_solution.cost < self.best_solution_network.cost:
                     if scout.current_solution.are_constraints_met():
-                        self.best_solution_network = copy.copy(scout.current_solution)
+                        self.best_solution_network = scout.current_solution.copy()
 
             print(f"Search iteration: {current_iteration} ended \n")
 
@@ -114,7 +114,7 @@ class Colony:
         else:
             for i in range(self.promising_solution_count):
                 if solution_network.cost < self.promising_solution_networks[i].cost:
-                    self.promising_solution_networks[i] = copy.copy(solution_network)
+                    self.promising_solution_networks[i] = solution_network.copy()
                     break
 
     def update_acceptable_solution_networks(self, solution_network):
@@ -129,7 +129,7 @@ class Colony:
             for i in range(self.acceptable_solution_count):
                 if solution_network.cost < self.acceptable_solution_networks[i].cost:
                     if solution_network.are_constraints_met():
-                        self.acceptable_solution_networks[i] = copy.copy(solution_network)
+                        self.acceptable_solution_networks[i] = solution_network.copy()
                         break
 
     def check_worker_attempt_cap(self, worker):
@@ -140,9 +140,7 @@ class Colony:
 
         if worker.attempt_number >= worker.MAX_ATTEMPT_CAP:
             worker.attempt_number = 0
-            worker.current_solution = copy.copy(
-                random.choice(self.promising_solution_networks)
-            )
+            worker.current_solution = random.choice(self.promising_solution_networks).copy()
             print('Worker changed network')
             print('New starting network cost', worker.current_solution.cost)
 
@@ -157,9 +155,8 @@ class Colony:
 
         if onlooker.attempt_number >= onlooker.MAX_ATTEMPT_CAP:
             onlooker.attempt_number = 0
-            onlooker.current_solution = copy.copy(
-                random.choice(self.acceptable_solution_networks)
-            )
+            onlooker.current_solution = random.choice(self.acceptable_solution_networks).copy()
+
             print('Onlooker changed network')
             print('New starting network cost', onlooker.current_solution.cost)
 

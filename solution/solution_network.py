@@ -1,3 +1,5 @@
+import copy
+
 from scipy.constants import Planck, e
 import random
 from solution.solution_demand import SolutionDemand
@@ -18,6 +20,23 @@ class SolutionNetwork:
         self.constraint_2_not_met = []
         self.transponders_2_band = []  # demands in which here are transponders in second band
         self.setup_demands()
+
+    def copy(self):
+        new_solution_network = SolutionNetwork(self.network)
+
+        for i in range(len(self.demands)):
+            new_solution_network.demands[i] = self.demands[i].copy()
+
+        new_solution_network.cost = copy.deepcopy(self.cost)
+        new_solution_network.unused_resources = copy.deepcopy(self.unused_resources)
+        new_solution_network.demand_nr = copy.deepcopy(self.demand_nr)
+        new_solution_network.band_slices = copy.deepcopy(self.band_slices)
+
+        new_solution_network.constraint_1_not_met = copy.deepcopy(self.constraint_1_not_met)
+        new_solution_network.constraint_2_not_met = copy.deepcopy(self.constraint_2_not_met)
+        new_solution_network.transponders_2_band = copy.deepcopy(self.transponders_2_band)
+
+        return new_solution_network
 
     def update_cost(self):
         f_cost_ = 0

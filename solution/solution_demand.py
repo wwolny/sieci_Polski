@@ -1,3 +1,5 @@
+import copy
+
 from solution.solution_transponder import SolutionTransponder
 
 
@@ -14,6 +16,17 @@ class SolutionDemand:
         self.network = network
         self.demand_val = 0
         self.transponders_in_2_band = []
+
+    def copy(self):
+        new_solution_demand = SolutionDemand(self.network, self.demand_id)
+        new_solution_demand.unused_resources = self.unused_resources
+        new_solution_demand.cost = self.cost
+        new_solution_demand.transponders = copy.deepcopy(self.transponders)
+        new_solution_demand.cheapest_transponder_set = copy.deepcopy(self.cheapest_transponder_set)
+        new_solution_demand.demand_val = self.demand_val
+        new_solution_demand.transponders_in_2_band = copy.deepcopy(self.transponders_in_2_band)
+
+        return new_solution_demand
 
     def add_transponder(self, path, transponder_type, start_slice, band):
         new_transponder = SolutionTransponder(transponder_type, start_slice, path, band)
