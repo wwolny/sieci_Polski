@@ -32,6 +32,7 @@ class SolutionDemand:
     def current_cheapest_transponder_set(self):
         resources = self.unused_resources
         self.cheapest_transponder_set = []
+
         while resources < 0:
             transponder_type = 0
             while True:
@@ -42,6 +43,7 @@ class SolutionDemand:
                 transponder_type += 1
             resources += self.network.transponders[transponder_type].bitrate
             self.cheapest_transponder_set.append(transponder_type)
+
         return self.cheapest_transponder_set
 
     def del_from_2_band(self, start_slice, path):

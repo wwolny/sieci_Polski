@@ -1,5 +1,6 @@
 import random
 
+
 class Onlooker:
     def __init__(self, start_solution, network):
         self.current_solution = start_solution
@@ -10,17 +11,21 @@ class Onlooker:
     def search_for_new_solution(self):
         if len(self.current_solution.constraint_1_not_met) == 0:
             self.del_all_trans_over()
+
         self.current_solution.update()
         self.current_solution.update_constraint_1()
         self.current_solution.get_current_cheapest_transponder_set()
+
         for path_id in range(self.network.maxPaths):
             if len(self.current_solution.constraint_1_not_met) == 0:
                 break
             rand_demand = random.sample(range(len(self.current_solution.demands)), len(self.current_solution.demands))
+
             while len(rand_demand) > 0:
                 demand = random.choice(rand_demand)
                 rand_demand.remove(demand)
                 iteration = 0
+
                 while len(self.current_solution.demands[demand].current_cheapest_transponder_set()) > 0 and iteration < self.MAX_ITERATION:
                     transponder_type = self.current_solution.demands[demand].cheapest_transponder_set[0]
                     transponder = self.network.transponders[transponder_type]
@@ -28,6 +33,7 @@ class Onlooker:
                     can_continue = True
                     first_slice_used = -1
                     path = self.network.demands[demand].paths[path_id]
+                    
                     for start_slice in transponder.slices:
                         # check if given start slice is not taken for all edges in path
                         for edge in path.edges:

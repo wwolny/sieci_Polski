@@ -1,9 +1,12 @@
 # implementation of Artificial Bee Colony Algorithm
 import copy
+import math
+import random
 
 from ABC.onlooker import Onlooker
 from ABC.scout import Scout
 from ABC.worker import Worker
+
 
 # TODO: change solutions for bees
 class Colony:
@@ -17,32 +20,66 @@ class Colony:
         self.onlookers = []
         self.scouts = []
 
+        self.acceptable_solution_networks = []
+        self.acceptable_solution_count = 0
+        self.ACCEPTABLE_SOLUTION_CAP = 10
+
+        self.promising_solution_networks = []
+        self.promising_solution_count = 0
+        self.PROMISING_SOLUTION_CAP = 100
+
         self.set_networks_for_bees(workers_count, onlookers_count, scouts_count)
 
-        self.best_solution_network = environment.solutions[0]
+        # Musimy na starcie ustawić jakieś rozwiązanie jako najlepsze
+        # Jego koszt to nieskonczosc bo chcemy je zastapic dowolnym prawidlowym rozwiazaniem
+        self.best_solution_network = copy.copy(environment.solutions[0])
+        self.best_solution_network.cost = math.inf
+
+        self.best_solution_network_test = copy.copy(environment.solutions[0])
+        self.best_solution_network_test.cost = math.inf
 
     def search_for_best_solution(self, iteration_number):
         current_iteration = 1
 
         while current_iteration <= iteration_number:
+            print(f"\nSearch iteration: {current_iteration} started")
+
             for worker in self.workers:
                 worker.search_for_new_solution()
+                self.check_worker_attempt_cap(worker)
+
+                self.update_promising_solution_networks(worker.current_solution)
+                self.update_acceptable_solution_networks(worker.current_solution)
 
                 if worker.current_solution.cost < self.best_solution_network.cost:
-                    self.best_solution_network = copy.copy(worker.current_solution)
+                    if worker.current_solution.are_constraints_met():
+                        self.best_solution_network = copy.copy(worker.current_solution)
 
             for onlooker in self.onlookers:
                 onlooker.search_for_new_solution()
 
+                self.update_promising_solution_networks(onlooker.current_solution)
+                self.update_acceptable_solution_networks(onlooker.current_solution)
+
                 if onlooker.current_solution.cost < self.best_solution_network.cost:
-                    self.best_solution_network = copy.copy(onlooker.current_solution)
+                    if onlooker.current_solution.are_constraints_met():
+                        self.best_solution_network = copy.copy(onlooker.current_solution)
+
+                if onlooker.current_solution.cost < self.best_solution_network_test.cost:
+                    if onlooker.current_solution.are_constraints_met():
+                        self.best_solution_network_test = copy.copy(onlooker.current_solution)
 
             for scout in self.scouts:
                 scout.search_for_new_solution()
 
-                if scout.current_solution.cost < self.best_solution_network.cost:
-                    self.best_solution_network = copy.copy(scout.current_solution)
+                self.update_promising_solution_networks(scout.current_solution)
+                self.update_acceptable_solution_networks(scout.current_solution)
 
+                if scout.current_solution.cost < self.best_solution_network.cost:
+                    if scout.current_solution.are_constraints_met():
+                        self.best_solution_network = copy.copy(scout.current_solution)
+
+            print(f"Search iteration: {current_iteration} ended \n")
 
             current_iteration += 1
 
@@ -55,6 +92,7 @@ class Colony:
             exit(1)
 
     def set_networks_for_bees(self, workers_count, onlookers_count, scouts_count):
+        # Starting solutions should all be found by scouts
         for i in range(self.environment.size):
             self.scouts.append(Scout(self.environment.solutions[i], self.environment.network))
         for scout in self.scouts:
@@ -68,9 +106,55 @@ class Colony:
             current_network_number += 1
 
         for _ in range(onlookers_count):
-            self.onlookers.append(Onlooker(self.environment.solutions[current_network_number], self.environment.network))
+            self.onlookers.append(
+                Onlooker(self.environment.solutions[current_network_number], self.environment.network))
             current_network_number += 1
 
         for _ in range(scouts_count):
             self.scouts.append(Scout(self.environment.solutions[current_network_number], self.environment.network))
             current_network_number += 1
+
+    def update_promising_solution_networks(self, solution_network):
+        # first add any solution if pool is not filled
+        if self.promising_solution_count < self.PROMISING_SOLUTION_CAP:
+            self.promising_solution_networks.append(solution_network)
+            self.promising_solution_count += 1
+
+        # if pool is full then we check if new solution is better than any existing
+        else:
+            for i in range(self.promising_solution_count):
+                if solution_network.cost < self.promising_solution_networks[i].cost:
+                    self.promising_solution_networks[i] = copy.copy(solution_network)
+                    break
+
+    def update_acceptable_solution_networks(self, solution_network):
+        # first add any solution that is correct if pool is not filled
+        if self.acceptable_solution_count < self.ACCEPTABLE_SOLUTION_CAP:
+            if solution_network.are_constraints_met():
+                self.acceptable_solution_networks.append(solution_network)
+                self.acceptable_solution_count += 1
+
+        # if pool is full then we check if new solution is better than any existing
+        else:
+            for i in range(self.acceptable_solution_count):
+                if solution_network.cost < self.acceptable_solution_networks[i].cost:
+                    if solution_network.are_constraints_met():
+                        self.acceptable_solution_networks[i] = copy.copy(solution_network)
+                        break
+
+    def check_worker_attempt_cap(self, worker):
+        if worker.current_solution.are_constraints_met:
+            if worker.current_solution.cost < worker.best_solution_cost:
+                worker.best_solution_cost = worker.current_solution.cost
+                worker.attempt_number = 0
+                return
+
+        if worker.attempt_number >= worker.MAX_ATTEMPT_CAP:
+            worker.attempt_number = 0
+            worker.current_solution = copy.copy(
+                random.choice(self.promising_solution_networks)
+            )
+            print('Worker changed network')
+
+        else:
+            worker.attempt_number += 1

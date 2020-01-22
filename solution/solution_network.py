@@ -63,13 +63,16 @@ class SolutionNetwork:
 
     def update_constraint_1(self):
         self.constraint_1_not_met = []
+
         for i, demand in enumerate(self.demands):
             if len(demand.current_cheapest_transponder_set()) > 0:
                 self.constraint_1_not_met.append(i)
+
         return self.constraint_1_not_met
 
     def update_constraint_2(self):
         self.constraint_2_not_met = []
+
         for i, demand in enumerate(self.demands):
             for j in range(self.network.maxPaths):
                 transp = demand.transponders[j]
@@ -79,7 +82,14 @@ class SolutionNetwork:
                     for trans in transp:
                         if not self.check_2_constraint(i, j, trans):
                             self.constraint_2_not_met.append(i)
+
         return self.constraint_2_not_met
+
+    def are_constraints_met(self):
+        if len(self.update_constraint_1()) == 0 and len(self.update_constraint_2()) == 0:
+            return True
+        else:
+            return False
 
     def update(self):
         self.update_unused_resources()

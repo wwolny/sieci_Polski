@@ -1,3 +1,4 @@
+import math
 import random
 
 
@@ -8,17 +9,23 @@ class Worker:
         self.network = network
         self.MAX_ITERATION = 50
 
+        self.best_solution_cost = math.inf
+        self.attempt_number = 0
+        self.MAX_ATTEMPT_CAP = 10
+
     def search_for_new_solution(self):
         for _ in range(self.MAX_ITERATION):
             cheapest_trans_dict = self.current_solution.get_current_cheapest_transponder_set()
+
             if len(cheapest_trans_dict) == 0:
                 self._set_lower()
             else:
                 self._add_new_trans(cheapest_trans_dict)
+
             self.current_solution.update_constraint_1()
             self.current_solution.update()
+
         print("Worker found new solution with cost:", self.current_solution.cost)
-        # print("First constraint not meet for:{0}".format(self.current_solution.constraint_1_not_met))
 
     def _set_lower(self):
         demands_lst = self.current_solution.transponders_2_band
@@ -78,7 +85,6 @@ class Worker:
             transponder.band = 1
             return 1
 
-
     def _add_new_trans(self, dict_cheapest):
         if len(dict_cheapest) == 0:
             return 0
@@ -116,6 +122,7 @@ class Worker:
             for path_id, path in enumerate(self.network.demands[chosen_dem_id].paths):
                 for edge in path.edges:
                     nxt_path = False
+                    print("Current slice: ", slice)
                     if not self.current_solution.band_slices[edge-1][slice]:
                         for width in range(0, max(trans_t, 1) - 1):
                             if self.current_solution.band_slices[edge-1][slice - width]:
@@ -136,3 +143,4 @@ class Worker:
                                                      self.network.demands[chosen_dem_id].paths[chosen_path].edges, 1)
             # print("Worker added transponder on slice:{0}, type:{1}".format(chosen_slice, trans_t))
             return 1
+
