@@ -35,9 +35,6 @@ class Colony:
         self.best_solution_network = copy.copy(environment.solutions[0])
         self.best_solution_network.cost = math.inf
 
-        self.best_solution_network_test = copy.copy(environment.solutions[0])
-        self.best_solution_network_test.cost = math.inf
-
     def search_for_best_solution(self, iteration_number):
         current_iteration = 1
 
@@ -48,7 +45,6 @@ class Colony:
                 worker.search_for_new_solution()
                 self.check_worker_attempt_cap(worker)
 
-                self.update_promising_solution_networks(worker.current_solution)
                 self.update_acceptable_solution_networks(worker.current_solution)
 
                 if worker.current_solution.cost < self.best_solution_network.cost:
@@ -57,17 +53,11 @@ class Colony:
 
             for onlooker in self.onlookers:
                 onlooker.search_for_new_solution()
-
-                self.update_promising_solution_networks(onlooker.current_solution)
-                self.update_acceptable_solution_networks(onlooker.current_solution)
+                self.check_onlooker_attempt_cap(onlooker)
 
                 if onlooker.current_solution.cost < self.best_solution_network.cost:
                     if onlooker.current_solution.are_constraints_met():
                         self.best_solution_network = copy.copy(onlooker.current_solution)
-
-                if onlooker.current_solution.cost < self.best_solution_network_test.cost:
-                    if onlooker.current_solution.are_constraints_met():
-                        self.best_solution_network_test = copy.copy(onlooker.current_solution)
 
             for scout in self.scouts:
                 scout.search_for_new_solution()
@@ -154,22 +144,24 @@ class Colony:
                 random.choice(self.promising_solution_networks)
             )
             print('Worker changed network')
+            print('New starting network cost', worker.current_solution.cost)
 
         else:
             worker.attempt_number += 1
 
-    def check_onlooker_attempt_cap(self, worker):
-        if worker.current_solution.cost < worker.best_solution_cost:
-            worker.best_solution_cost = worker.current_solution.cost
-            worker.attempt_number = 0
+    def check_onlooker_attempt_cap(self, onlooker):
+        if onlooker.current_solution.cost < onlooker.best_solution_cost:
+            onlooker.best_solution_cost = onlooker.current_solution.cost
+            onlooker.attempt_number = 0
             return
 
-        if worker.attempt_number >= worker.MAX_ATTEMPT_CAP:
-            worker.attempt_number = 0
-            worker.current_solution = copy.copy(
-                random.choice(self.promising_solution_networks)
+        if onlooker.attempt_number >= onlooker.MAX_ATTEMPT_CAP:
+            onlooker.attempt_number = 0
+            onlooker.current_solution = copy.copy(
+                random.choice(self.acceptable_solution_networks)
             )
-            print('Worker changed network')
+            print('Onlooker changed network')
+            print('New starting network cost', onlooker.current_solution.cost)
 
         else:
-            worker.attempt_number += 1
+            onlooker.attempt_number += 1

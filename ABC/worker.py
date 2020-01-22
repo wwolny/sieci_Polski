@@ -11,7 +11,7 @@ class Worker:
 
         self.best_solution_cost = math.inf
         self.attempt_number = 0
-        self.MAX_ATTEMPT_CAP = 50
+        self.MAX_ATTEMPT_CAP = 25
 
     def search_for_new_solution(self):
         for _ in range(self.MAX_ITERATION):

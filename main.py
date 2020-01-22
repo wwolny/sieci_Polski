@@ -5,7 +5,7 @@ from network.network import Network
 from environment import *
 
 if __name__ == "__main__":
-    network = Network(100 )
+    network = Network(100)
     network.set_up_network_data("res.dat")
     env = Environment(network, 10)
     env.setup_demands()
