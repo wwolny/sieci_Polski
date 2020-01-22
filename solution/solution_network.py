@@ -178,7 +178,7 @@ class SolutionNetwork:
             return -1
         for edge in edges:
             for i in range(width):
-                self.band_slices[edge-start_edge][slice+i] = True
+                self.band_slices[edge - start_edge][slice + i] = True
         return 1
 
     def free_trans_on_slice(self, slice, width, edges, start_edge=0):

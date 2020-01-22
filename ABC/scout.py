@@ -5,6 +5,7 @@ class Scout:
     def __init__(self, start_solution, network):
         self.current_solution = start_solution
         self.network = network
+        self.MIN_ITERATION = 50
         self.MAX_ITERATION = 50
 
     def search_for_new_solution(self):

@@ -11,7 +11,7 @@ class Worker:
 
         self.best_solution_cost = math.inf
         self.attempt_number = 0
-        self.MAX_ATTEMPT_CAP = 10
+        self.MAX_ATTEMPT_CAP = 50
 
     def search_for_new_solution(self):
         for _ in range(self.MAX_ITERATION):
@@ -117,12 +117,12 @@ class Worker:
                                                      self.network.demands[chosen_dem_id].paths[chosen_path].edges, 1)
             # print("Worker added transponder on slice:{0}, type:{1}".format(chosen_slice, trans_t))
             return 1
-        slice = self.network.MaxFreqSlices
+        slice = self.network.MaxFreqSlices - 1
+
         while slice > self.network.sec_band_start + max(1, trans_t):
             for path_id, path in enumerate(self.network.demands[chosen_dem_id].paths):
                 for edge in path.edges:
                     nxt_path = False
-                    print("Current slice: ", slice)
                     if not self.current_solution.band_slices[edge-1][slice]:
                         for width in range(0, max(trans_t, 1) - 1):
                             if self.current_solution.band_slices[edge-1][slice - width]:
@@ -138,8 +138,9 @@ class Worker:
                 break
             slice -= 1
         if chosen_slice != -1:
-            self.current_solution.demand[chosen_dem_id].add_transponder(chosen_path, self.network.transponders[trans_t], chosen_slice-max(trans_t, 1)+1, 2)
-            self.current_solution.add_trans_on_slice(slice, max(1, trans_t),
+            self.current_solution.demands[chosen_dem_id]\
+                .add_transponder(chosen_path, self.network.transponders[trans_t], chosen_slice - max(trans_t, 1), 2)
+            self.current_solution.add_trans_on_slice(chosen_slice - max(trans_t, 1), max(1, trans_t),
                                                      self.network.demands[chosen_dem_id].paths[chosen_path].edges, 1)
             # print("Worker added transponder on slice:{0}, type:{1}".format(chosen_slice, trans_t))
             return 1

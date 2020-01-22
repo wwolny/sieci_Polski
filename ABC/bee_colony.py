@@ -143,11 +143,26 @@ class Colony:
                         break
 
     def check_worker_attempt_cap(self, worker):
-        if worker.current_solution.are_constraints_met:
-            if worker.current_solution.cost < worker.best_solution_cost:
-                worker.best_solution_cost = worker.current_solution.cost
-                worker.attempt_number = 0
-                return
+        if worker.current_solution.cost < worker.best_solution_cost:
+            worker.best_solution_cost = worker.current_solution.cost
+            worker.attempt_number = 0
+            return
+
+        if worker.attempt_number >= worker.MAX_ATTEMPT_CAP:
+            worker.attempt_number = 0
+            worker.current_solution = copy.copy(
+                random.choice(self.promising_solution_networks)
+            )
+            print('Worker changed network')
+
+        else:
+            worker.attempt_number += 1
+
+    def check_onlooker_attempt_cap(self, worker):
+        if worker.current_solution.cost < worker.best_solution_cost:
+            worker.best_solution_cost = worker.current_solution.cost
+            worker.attempt_number = 0
+            return
 
         if worker.attempt_number >= worker.MAX_ATTEMPT_CAP:
             worker.attempt_number = 0
