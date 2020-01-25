@@ -20,7 +20,9 @@ if __name__ == "__main__":
 
     bee_colony = Colony(3, 5, 2, env)  # workers_count; onlookers_count; scouts_count
 
-    bee_colony.search_for_best_solution(100)
+    # bee_colony.search_for_best_solution(100)
+
+    bee_colony.search_for_best_solution_and_draw(100)
 
     if bee_colony.best_solution_network.cost != math.inf:
         print("Cheapest solution found:", bee_colony.best_solution_network.cost)

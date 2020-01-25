@@ -271,25 +271,33 @@ class SolutionNetwork:
         chosen_paths = {}
         available_paths = {}
         available_edges = list(range(1, len(self.network.edges_ids)+1))
+
         for id in list(list_of_demands_ids.keys()):
             for i, path in enumerate(self.network.demands[id].paths):
                 available_paths[path.id] = [id, i]
+
         while 0 < len(available_paths) and len(available_edges) != 0:
             path = random.choice(list(available_paths.keys()))
             dem_id = available_paths.get(path)[0]
             nr_path = available_paths.get(path)[1]
+
             if list_of_demands_ids.get(dem_id) <= 0:
                 available_paths.pop(path)
                 continue
+
             to_remove = []
+
             for edge in self.network.demands[dem_id].paths[nr_path].edges:
                 to_remove.append(edge)
+
             if len(list(set(available_edges).intersection(to_remove))) != len(to_remove):
                 available_paths.pop(path)
                 continue
+
             available_edges = [x for x in available_edges if x not in to_remove]
             chosen_paths[path] = [dem_id, nr_path]
             available_paths.pop(path)
             list_of_demands_ids[dem_id] -= 1
+
         return chosen_paths
 

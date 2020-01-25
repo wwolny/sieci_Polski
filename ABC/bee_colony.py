@@ -1,7 +1,8 @@
 # implementation of Artificial Bee Colony Algorithm
-import copy
 import math
 import random
+
+from matplotlib import pylab
 
 from ABC.onlooker import Onlooker
 from ABC.scout import Scout
@@ -26,7 +27,7 @@ class Colony:
 
         self.promising_solution_networks = []
         self.promising_solution_count = 0
-        self.PROMISING_SOLUTION_CAP = 100
+        self.PROMISING_SOLUTION_CAP = 50
 
         self.set_networks_for_bees(workers_count, onlookers_count, scouts_count)
 
@@ -54,6 +55,8 @@ class Colony:
             for onlooker in self.onlookers:
                 onlooker.search_for_new_solution()
                 self.check_onlooker_attempt_cap(onlooker)
+
+                self.update_acceptable_solution_networks(onlooker.current_solution)
 
                 if onlooker.current_solution.cost < self.best_solution_network.cost:
                     if onlooker.current_solution.are_constraints_met():
@@ -162,3 +165,62 @@ class Colony:
 
         else:
             onlooker.attempt_number += 1
+
+    def search_for_best_solution_and_draw(self, iteration_number):
+        best_solutions = []
+        current_iteration = 1
+
+        while current_iteration <= iteration_number:
+            print(f"\nSearch iteration: {current_iteration} started")
+
+            for worker in self.workers:
+                worker.search_for_new_solution()
+                self.check_worker_attempt_cap(worker)
+
+                self.update_acceptable_solution_networks(worker.current_solution)
+
+                if worker.current_solution.cost < self.best_solution_network.cost:
+                    if worker.current_solution.are_constraints_met():
+                        self.best_solution_network = worker.current_solution.copy()
+
+            for onlooker in self.onlookers:
+                onlooker.search_for_new_solution()
+                self.check_onlooker_attempt_cap(onlooker)
+
+                self.update_acceptable_solution_networks(onlooker.current_solution)
+
+                if onlooker.current_solution.cost < self.best_solution_network.cost:
+                    if onlooker.current_solution.are_constraints_met():
+                        self.best_solution_network = onlooker.current_solution.copy()
+
+            for scout in self.scouts:
+                scout.search_for_new_solution()
+
+                self.update_promising_solution_networks(scout.current_solution)
+                self.update_acceptable_solution_networks(scout.current_solution)
+
+                if scout.current_solution.cost < self.best_solution_network.cost:
+                    if scout.current_solution.are_constraints_met():
+                        self.best_solution_network = scout.current_solution.copy()
+
+            print(f"Search iteration: {current_iteration} ended \n")
+
+            if self.best_solution_network.cost == math.inf:
+                best_solutions.append(0)
+            else:
+                best_solutions.append(self.best_solution_network.cost)
+
+            current_iteration += 1
+
+        x = range(iteration_number)
+
+        pylab.plot(x, best_solutions)
+        pylab.title("Najlepsze rozwiązanie dla danej sieci telekomunikacyjnej")
+        pylab.xlabel("Numer iteracji")
+        pylab.ylabel("Minimum funkcji kosztu")
+
+        pylab.savefig('results.png')
+        pylab.show()
+
+        self.environment.check_first_constraint()
+        self.environment.check_second_constraint()

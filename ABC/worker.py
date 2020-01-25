@@ -2,12 +2,11 @@ import math
 import random
 
 
-# TODO: change some transponders from 3rd/2nd path to 1st (shortest)
 class Worker:
     def __init__(self, start_solution, network):
         self.current_solution = start_solution
         self.network = network
-        self.MAX_ITERATION = 50
+        self.MAX_ITERATION = 20
 
         self.best_solution_cost = math.inf
         self.attempt_number = 0
@@ -42,8 +41,10 @@ class Worker:
                         break
             if transponder:
                 break
+
         if not transponder:
             return -1
+
         trans_t = transponder.type.id -1
         chosen_path = -1
         chosen_slice = -1
